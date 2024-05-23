@@ -1,0 +1,57 @@
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: dotnet-webapi-job
+#   namespace: aksjob
+# spec:
+#   template:
+#     metadata:
+#       name: dotnet-webapi-pod
+#     spec:
+#       containers:
+#       - name: dotnet-webapi-container
+#         image: thinclientacrv01.azurecr.io/acrjob:latest
+#       restartPolicy: Never
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dotnet-webapi-job3
+  namespace: aksjob
+spec:
+  template:
+    metadata:
+      name: dotnet-webapi-pod
+    spec:
+      containers:
+      - name: dotnet-webapi-container
+        image: thinclientacrv01.azurecr.io/acrjob:latest
+        # Add configuration for the .NET WebAPI container
+      - name: powershell-container
+        image: mcr.microsoft.com/powershell:latest
+        command: [ "pwsh", "-command", "Start-Process", "-FilePath", "pwsh", "-ArgumentList", "'-File', '/scripts/run.ps1'" ]
+        volumeMounts:
+        - name: script-volume
+          mountPath: /scripts
+        - name: output-volume
+          mountPath: /output
+      restartPolicy: Never
+      volumes:
+      - name: script-volume
+        emptyDir: {}
+      - name: output-volume
+        hostPath:
+          path: C:\POC\ACRjob
+      initContainers:
+      - name: install-tools
+        image: mcr.microsoft.com/powershell:latest
+        command: ["pwsh", "-command"]
+        args:
+        - "Install-Module -Name npm -Force -Scope AllUsers -AllowClobber -SkipPublisherCheck; npm install -g newman"
+        volumeMounts:
+        - name: script-volume
+          mountPath: /scripts
+
+
+

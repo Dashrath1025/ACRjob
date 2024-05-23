@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dotnet-webapi-cronjob
+  namespace: aksjob
+spec:
+  schedule: "*/1 * * * *"  # Runs every 1 minute
+  successfulJobsHistoryLimit: 2   # Keep only the last 2 successful job instances
+  jobTemplate:
+    spec:
+      completions: 1  # Run this job 1 time
+      parallelism: 1  # Run this job with parallelism 
+      backoffLimit: 2  # If job fails, retry it 2 times
+      ttlSecondsAfterFinished: 10  # Delete pods after 10 seconds
+      template:
+        spec:
+          containers:
+          - name: dotnet-webapi-container
+            image: thinclientacrv01.azurecr.io/acrjob:latest
+            imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure
